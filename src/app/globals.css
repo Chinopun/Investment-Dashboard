@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #f8f9fb;
+  --card: #ffffff;
+  --border: #e2e4e9;
+  --text: #111111;
+  --text-secondary: #666666;
+  --text-muted: #999999;
+  --accent: #0a84ff;
+  --pos: #0a8a3f;
+  --neg: #c83a3a;
+}
+
+.dark {
+  --bg: #000000;
+  --card: #1c1c1e;
+  --border: #2c2c2e;
+  --text: #ffffff;
+  --text-secondary: #aeaeb2;
+  --text-muted: #8e8e93;
+  --accent: #0a84ff;
+  --pos: #30d158;
+  --neg: #ff453a;
+}
+
+html, body { background: var(--bg); color: var(--text); }
+
+* { transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease; }
+
+/* hide number-input arrows so cost-basis fields look clean */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type=number] { -moz-appearance: textfield; }
