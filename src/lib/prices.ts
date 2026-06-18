@@ -11,27 +11,31 @@ async function getJson(path: string): Promise<any> {
   return res.json();
 }
 
+// Quotes come from Finnhub via our own /api/quote route.
+// We moved off Yahoo because their server-side endpoints aggressively 429
+// any IP making more than a few requests in a row.
 export async function fetchQuotes(tickers: string[]): Promise<Quote[]> {
   if (tickers.length === 0) return [];
   const results = await Promise.all(
     tickers.map(async (t): Promise<Quote | null> => {
       const sym = t.toUpperCase();
-      const json = await getJson(`/v8/finance/chart/${encodeURIComponent(sym)}?range=1d&interval=1d`);
-      const meta = json?.chart?.result?.[0]?.meta;
-      if (!meta) return null;
-      const price = Number(meta.regularMarketPrice ?? 0);
-      const prev = Number(meta.chartPreviousClose ?? meta.previousClose ?? price);
-      const change = price - prev;
-      const change_pct = prev ? (change / prev) * 100 : 0;
-      return {
-        ticker: sym,
-        price,
-        change,
-        change_pct,
-        prev_close: prev,
-        currency: meta.currency ?? 'USD',
-        name: meta.longName ?? meta.shortName,
-      };
+      try {
+        const res = await fetch(`/api/quote?ticker=${encodeURIComponent(sym)}`);
+        if (!res.ok) return null;
+        const data = await res.json();
+        return {
+          ticker: sym,
+          price: Number(data.price ?? 0),
+          change: Number(data.change ?? 0),
+          change_pct: Number(data.change_pct ?? 0),
+          prev_close: Number(data.prev_close ?? 0),
+          currency: data.currency ?? 'USD',
+          // Finnhub /quote doesn't return company name; PortfolioRow already
+          // falls back to holding.name from Supabase, so no extra lookup needed.
+        };
+      } catch {
+        return null;
+      }
     }),
   );
   return results.filter((q): q is Quote => q !== null);
